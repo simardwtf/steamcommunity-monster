@@ -1,0 +1,7 @@
+# Copy to worker/.dev.vars for local Wrangler development.
+STEAM_API_KEY=
+FACEIT_API_KEY=
+LEETIFY_API_KEY=
+# Optional authorized partner adapters:
+CSREP_API_URL_TEMPLATE=
+CSREP_API_KEY=

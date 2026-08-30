@@ -1,0 +1,18 @@
+{
+  "name": "steamcommunity-monster",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "install:all": "npm install --prefix worker",
+    "dev": "npm run dev:worker",
+    "dev:worker": "npm --prefix worker run dev",
+    "test": "node --test tests/worker.test.js",
+    "lint": "node --check worker/src/index.js && node --check pages/app.js && node --check pages/config.js && node --check scripts/bootstrap-cloudflare.js && node --check scripts/bootstrap-github.js",
+    "check": "npm test && npm run lint && npm --prefix worker exec wrangler deploy --dry-run",
+    "deploy:worker": "npm --prefix worker exec wrangler deploy",
+    "deploy:pages": "npx --yes wrangler pages deploy pages --project-name steamcommunity-monster",
+    "migrate:remote": "npm --prefix worker exec wrangler d1 migrations apply steamcommunity-monster --remote",
+    "bootstrap:cloudflare": "node scripts/bootstrap-cloudflare.js",
+    "bootstrap:github": "node scripts/bootstrap-github.js"
+  }
+}

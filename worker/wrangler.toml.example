@@ -1,0 +1,2 @@
+# Legacy reference only. Use wrangler.jsonc as the single source of truth.
+# Copying this file to wrangler.toml is unsupported and may diverge from production.

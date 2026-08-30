@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "steamcommunity-monster-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-30",
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  "vars": {
+    "ALLOWED_ORIGIN": "https://steamcommunity.monster",
+    "CACHE_TTL_SECONDS": "900",
+    "SNAPSHOT_INTERVAL_SECONDS": "21600"
+  },
+  "routes": [
+    { "pattern": "api.steamcommunity.monster", "custom_domain": true }
+  ]
+  // Uncomment after `wrangler d1 create steamcommunity-monster` and set the
+  // returned database_id. Keeping this optional preserves a no-D1 local deploy.
+  /*
+  ,"d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "steamcommunity-monster",
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "migrations_dir": "migrations"
+    }
+  ]
+  */
+}

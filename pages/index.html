@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#090b10" />
+  <meta name="description" content="One CS2 player profile. Steam, FACEIT, Leetify and community signals in one place." />
+  <title>steamcommunity.monster — CS2 player intelligence</title>
+  <link rel="preconnect" href="https://avatars.cloudflare.steamstatic.com" crossorigin>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div class="noise"></div>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="steamcommunity.monster home">
+      <span class="brand-mark">M</span>
+      <span><b>steamcommunity</b><em>.monster</em></span>
+    </a>
+    <div class="hack"><span>URL HACK</span> steamcommunity<span class="muted">.com</span> → steamcommunity<span class="acid">.monster</span></div>
+  </header>
+
+  <main>
+    <section class="hero" id="hero">
+      <div class="eyebrow">CS2 PLAYER INTELLIGENCE</div>
+      <h1>One profile.<br><span>Every useful signal.</span></h1>
+      <p class="lede">Paste a Steam URL, SteamID64 or vanity name. Monster combines official Steam, FACEIT and Leetify data and keeps community tools one click away.</p>
+      <form id="searchForm" class="search-card">
+        <input id="searchInput" name="input" required minlength="2" maxlength="200" autocomplete="off" spellcheck="false" placeholder="steamcommunity.com/id/player or SteamID64" aria-label="Steam profile" />
+        <button type="submit">HUNT</button>
+      </form>
+      <div class="shortcut">Or replace <code>.com</code> with <code>.monster</code> in any Steam profile URL.</div>
+    </section>
+
+    <section id="profile" class="profile hidden" role="region" aria-live="polite" aria-label="Player profile"></section>
+  </main>
+
+  <footer id="privacy">
+    <div>steamcommunity.monster is not affiliated with Valve/Steam, FACEIT, Leetify, or any linked community tool.</div>
+    <div>Public profile/provider data is used only for this page and optional sparse history. <a href="/#privacy">Privacy & attribution</a>.</div>
+  </footer>
+
+  <script src="/config.js"></script>
+  <script src="/app.js" defer></script>
+</body>
+</html>

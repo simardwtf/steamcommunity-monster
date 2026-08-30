@@ -1,0 +1,54 @@
+name: ci-deploy
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: worker/package.json
+      - run: npm install --prefix worker
+      - run: npm test
+      - run: npm run lint
+      - run: npm --prefix worker exec wrangler deploy --dry-run --config wrangler.jsonc
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache-dependency-path: worker/package.json
+      - run: npm install --prefix worker
+      - name: Apply D1 migrations when configured
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if node -e "const s=require('fs').readFileSync('worker/wrangler.jsonc','utf8'); process.exit(s.includes('\"d1_databases\"') && !s.includes('/*') ? 0 : 1)"; then npm run migrate:remote; else echo 'D1 is not configured; skipping migrations.'; fi
+      - name: Deploy Worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npm run deploy:worker
+      - name: Deploy Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npm run deploy:pages
+      - name: Smoke test API
+        run: node -e "fetch('https://api.steamcommunity.monster/health').then(async r => { if (!r.ok) throw new Error('health ' + r.status); console.log(await r.text()) })"
