@@ -39,7 +39,15 @@ async function ensureDomain() {
 async function main() {
   const projects = listProjects();
   if (projects.some(item => item.name === project)) console.log(`Pages project ${project} already exists.`);
-  else { run(['pages', 'project', 'create', project, '--production-branch', 'main']); console.log(`Created Pages project ${project}.`); }
+  else {
+    try {
+      run(['pages', 'project', 'create', project, '--production-branch', 'main']);
+      console.log(`Created Pages project ${project}.`);
+    } catch (error) {
+      if (!error.message.includes('already exists')) throw error;
+      console.log(`Pages project ${project} already exists.`);
+    }
+  }
   await ensureDomain();
 }
 main().catch(error => { console.error(error.message); process.exitCode = 1; });
