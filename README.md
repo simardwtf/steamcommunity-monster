@@ -41,8 +41,18 @@ The test suite mocks upstream APIs and does not need provider credentials.
 
 For a one-time setup, export `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, then run `npm run bootstrap:cloudflare`. It is idempotent, creates/binds D1 when permitted, creates the Pages project, applies migrations, deploys both surfaces, and attempts the Pages custom domain. Missing DNS ownership or token scopes are reported without deleting resources.
 
-GitHub Actions runs tests, static checks, and Worker dry-run validation on pull requests. Pushes to `main` apply configured D1 migrations, deploy Worker and Pages, then smoke-test `/health`. Required repository secrets: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. `npm run bootstrap:github` can set them from environment variables without printing values.
+**After the first successful deploy you must create one DNS record** (the bootstrap and CI cannot do this without Zone:DNS:Edit scope):
 
+```
+Type:   CNAME
+Name:   @                     (apex / steamcommunity.monster)
+Target: steamcommunity-monster.pages.dev
+Proxy:  Proxied (orange cloud)
+```
+
+Once added, `https://steamcommunity.monster/` will resolve to the live site (Cloudflare provisions the cert automatically).
+
+GitHub Actions runs tests, static checks, and Worker dry-run validation on pull requests. Pushes to `main` apply configured D1 migrations, deploy Worker and Pages, then smoke-test `/health`. Required repository secrets: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. `npm run bootstrap:github` can set them from environment variables without printing values.
 ## Add an authorized provider
 
 Provider definitions live in `worker/src/index.js` under `COMMUNITY_DEFS`. Add a documented API URL-template secret and optional bearer-token secret, return the shared result envelope, and document the access model in `docs/PROVIDERS.md`. Monster does not scrape sites or invent undocumented APIs. External-only links remain available through `/v1/tools/:steamid64`.

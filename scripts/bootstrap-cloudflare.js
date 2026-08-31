@@ -56,10 +56,23 @@ try {
   run(['d1', 'migrations', 'apply', database, '--remote'], worker);
   run(['deploy', '--config', 'wrangler.jsonc'], worker);
   run(['pages', 'deploy', 'pages', '--project-name', project], root);
-  try { run(['pages', 'domain', 'add', 'steamcommunity.monster', '--project-name', project]); } catch { console.warn('Pages domain attachment was not completed; attach steamcommunity.monster in Cloudflare Pages.'); }
-  console.log('Cloudflare bootstrap complete. DNS zone ownership and custom-domain certificates remain Cloudflare-managed.');
+  console.log('');
+  console.log('=== IMPORTANT: Add this DNS record in your Cloudflare zone for steamcommunity.monster ===');
+  console.log('Type:    CNAME');
+  console.log('Name:    @   (or steamcommunity.monster)');
+  console.log('Target:  steamcommunity-monster.pages.dev');
+  console.log('Proxy:   Proxied (orange cloud)  -- required for Pages custom domain');
+  console.log('TTL:     Auto');
+  console.log('');
+  console.log('After adding the record, https://steamcommunity.monster/ will serve the site.');
+  console.log('Cloudflare will issue the certificate automatically (may take a few minutes).');
+  console.log('===============================================================================');
 } catch (error) {
   console.error(`Bootstrap stopped: ${error.message}`);
   console.error('Check Wrangler authentication, account ID, API token scopes, and DNS zone ownership. No existing resources were deleted.');
   process.exitCode = 1;
+  console.log('');
+  console.log('=== After fixing the error above, add this DNS record manually in Cloudflare: ===');
+  console.log('CNAME  @  ->  steamcommunity-monster.pages.dev   (proxied)');
+  console.log('============================================================================');
 }

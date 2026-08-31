@@ -50,5 +50,9 @@ async function main() {
   if (!accountId || !token) throw new Error('CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN are required.');
   await ensureProject(accountId, token);
   await ensureDomain(accountId, token);
+  console.log('');
+  console.log('DNS record required (add manually in Cloudflare zone if not present):');
+  console.log('  CNAME  @  ->  steamcommunity-monster.pages.dev   (proxied)');
+  console.log('This is a one-time manual step; the token used here only manages Pages, not zone DNS.');
 }
 main().catch(error => { console.error(error.message); process.exitCode = 1; });
