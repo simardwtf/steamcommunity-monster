@@ -169,6 +169,7 @@ function parseInput(input) {
     if (parts[0].toLowerCase() === 'id' && /^[A-Za-z0-9_-]{2,64}$/.test(segment)) return { vanity: segment, kind: 'vanity-url' };
     throw new InputError('URL is not a valid Steam profile path');
   }
+  if (/^\d+$/.test(raw)) throw new InputError('Unsupported profile input');
   if (/^[A-Za-z0-9_-]{2,64}$/.test(raw)) return { vanity: raw, kind: 'vanity' };
   throw new InputError('Unsupported profile input');
 }

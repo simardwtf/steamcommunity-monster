@@ -16,6 +16,7 @@ test('rejects unrelated hosts and malformed identifiers', () => {
   assert.throws(() => parseInput('https://example.com/id/player'), /Only Steam/);
   assert.throws(() => parseInput(`https://steamcommunity.com/profiles/${steamid}x`), /valid Steam profile path/);
   assert.throws(() => parseInput('7656119800000000'), /Unsupported/);
+  assert.throws(() => parseInput('123456789'), /Unsupported/);
 });
 
 test('generates canonical external tool URLs', () => {
