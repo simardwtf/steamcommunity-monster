@@ -1,53 +1,54 @@
-import { execFileSync } from 'node:child_process';
-
 const project = 'steamcommunity-monster';
 const domain = 'steamcommunity.monster';
-function run(args, capture = false) {
-  return execFileSync('npx', ['--yes', 'wrangler', ...args], {
-    cwd: process.cwd(),
-    encoding: 'utf8',
-    stdio: capture ? ['ignore', 'pipe', 'inherit'] : 'inherit'
-  });
+
+function endpoint(accountId, suffix = '') {
+  return `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/pages/projects${suffix}`;
 }
-function parseResult(output) {
-  const parsed = JSON.parse(output);
-  return Array.isArray(parsed) ? parsed : parsed.result || [];
+function headers(token) { return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }; }
+async function requestJson(url, init) {
+  const response = await fetch(url, init);
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok || body.success === false) {
+    const detail = body.errors?.map(error => error.message).join('; ') || `HTTP ${response.status}`;
+    throw new Error(detail);
+  }
+  return body;
 }
-function listProjects() {
-  try { return parseResult(run(['pages', 'project', 'list', '--json'], true)); }
-  catch (error) { throw new Error(`Could not list Cloudflare Pages projects: ${error.message}`); }
+async function ensureProject(accountId, token) {
+  const listing = await requestJson(endpoint(accountId), { headers: headers(token) });
+  const projects = listing.result || [];
+  if (projects.some(item => item.name === project)) {
+    console.log(`Pages project ${project} already exists.`);
+    return;
+  }
+  try {
+    await requestJson(endpoint(accountId), {
+      method: 'POST', headers: headers(token),
+      body: JSON.stringify({ name: project, production_branch: 'main' })
+    });
+    console.log(`Created Pages project ${project}.`);
+  } catch (error) {
+    if (!error.message.toLowerCase().includes('already exists')) throw error;
+    console.log(`Pages project ${project} already exists.`);
+  }
 }
-async function ensureDomain() {
-  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
-  const token = process.env.CLOUDFLARE_API_TOKEN;
-  if (!accountId || !token) throw new Error('CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN are required to attach the Pages domain.');
-  const endpoint = `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/pages/projects/${encodeURIComponent(project)}/domains`;
-  const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
-  const listing = await fetch(endpoint, { headers });
-  const listingBody = await listing.json().catch(() => ({}));
-  if (!listing.ok || listingBody.success === false) throw new Error(`Could not list Pages domains (${listing.status}).`);
-  const domains = listingBody.result || [];
+async function ensureDomain(accountId, token) {
+  const url = endpoint(accountId, `/${encodeURIComponent(project)}/domains`);
+  const authHeaders = headers(token);
+  const listing = await requestJson(url, { headers: authHeaders });
+  const domains = listing.result || [];
   if (domains.some(item => item.name === domain || item.domain === domain)) {
     console.log(`Pages domain ${domain} already exists.`);
     return;
   }
-  const created = await fetch(endpoint, { method: 'POST', headers, body: JSON.stringify({ name: domain }) });
-  const createdBody = await created.json().catch(() => ({}));
-  if (!created.ok || createdBody.success === false) throw new Error(`Could not attach Pages domain ${domain} (${created.status}).`);
+  await requestJson(url, { method: 'POST', headers: authHeaders, body: JSON.stringify({ name: domain }) });
   console.log(`Attached Pages domain ${domain}.`);
 }
 async function main() {
-  const projects = listProjects();
-  if (projects.some(item => item.name === project)) console.log(`Pages project ${project} already exists.`);
-  else {
-    try {
-      run(['pages', 'project', 'create', project, '--production-branch', 'main']);
-      console.log(`Created Pages project ${project}.`);
-    } catch (error) {
-      if (!error.message.includes('already exists')) throw error;
-      console.log(`Pages project ${project} already exists.`);
-    }
-  }
-  await ensureDomain();
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const token = process.env.CLOUDFLARE_API_TOKEN;
+  if (!accountId || !token) throw new Error('CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN are required.');
+  await ensureProject(accountId, token);
+  await ensureDomain(accountId, token);
 }
 main().catch(error => { console.error(error.message); process.exitCode = 1; });
