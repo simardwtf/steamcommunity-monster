@@ -17,8 +17,17 @@ const safeDecode = value => { try { return decodeURIComponent(value); } catch { 
 const safeUrl = value => { try { const url = new URL(value); return url.protocol === 'https:' ? url.toString() : '#'; } catch { return '#'; } };
 const time = value => { const parsed = new Date(value); return Number.isNaN(parsed.getTime()) ? '—' : parsed.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); };
 
-function showState(message, cls = '') { state.className = `state ${cls}`.trim(); state.innerHTML = message; profile.classList.add('hidden'); }
-function clearState() { state.className = 'state hidden'; state.textContent = ''; }
+function showState(message, cls = '') {
+  if (!state) return;
+  state.className = `state ${cls}`.trim();
+  state.innerHTML = message;
+  profile?.classList.add('hidden');
+}
+function clearState() {
+  if (!state) return;
+  state.className = 'state hidden';
+  state.textContent = '';
+}
 function statusLabel(provider) {
   const status = provider?.status || (provider?.ok ? 'ok' : 'error');
   const label = { ok: 'LIVE', public: 'PUBLIC', not_configured: 'NOT CONFIGURED', external_only: 'EXTERNAL ONLY', not_found: 'NOT FOUND', rate_limited: 'RATE LIMITED', error: 'UNAVAILABLE' }[status] || status.toUpperCase();
@@ -94,6 +103,7 @@ async function lookup(raw, push = false, refresh = false) {
   const query = (raw || '').trim(); if (!query) return;
   const sequence = ++lookupSequence;
   lastQuery = query;
+  hero?.classList.add('hidden');
   showState('<span class="spinner"></span><div><b>Tracking player…</b><br><span class="loading-copy">Steam → FACEIT → Leetify → independent provider signals</span></div>', 'loading');
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
