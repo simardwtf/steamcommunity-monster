@@ -54,5 +54,6 @@ async function main() {
   console.log('DNS record required (add manually in Cloudflare zone if not present):');
   console.log('  CNAME  @  ->  steamcommunity-monster.pages.dev   (proxied)');
   console.log('This is a one-time manual step; the token used here only manages Pages, not zone DNS.');
+  console.log('To automate, rotate CLOUDFLARE_API_TOKEN to include Zone:Read + DNS:Edit scopes.');
 }
 main().catch(error => { console.error(error.message); process.exitCode = 1; });

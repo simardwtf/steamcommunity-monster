@@ -57,22 +57,31 @@ try {
   run(['deploy', '--config', 'wrangler.jsonc'], worker);
   run(['pages', 'deploy', 'pages', '--project-name', project], root);
   console.log('');
-  console.log('=== IMPORTANT: Add this DNS record in your Cloudflare zone for steamcommunity.monster ===');
+  console.log('=== DNS for custom domain ===');
+  console.log('To automate DNS record creation in future deploys, your CLOUDFLARE_API_TOKEN needs:');
+  console.log('  Account > Pages > Edit');
+  console.log('  Zone > Zone > Read');
+  console.log('  Zone > DNS > Edit (for steamcommunity.monster)');
+  console.log('Create/update the token in Cloudflare > API Tokens, then update the GitHub secret.');
+  console.log('');
+  console.log('Manual record (if not automated):');
   console.log('Type:    CNAME');
   console.log('Name:    @   (or steamcommunity.monster)');
   console.log('Target:  steamcommunity-monster.pages.dev');
-  console.log('Proxy:   Proxied (orange cloud)  -- required for Pages custom domain');
-  console.log('TTL:     Auto');
+  console.log('Proxy:   Proxied (orange cloud)');
   console.log('');
-  console.log('After adding the record, https://steamcommunity.monster/ will serve the site.');
-  console.log('Cloudflare will issue the certificate automatically (may take a few minutes).');
+  console.log('After the record exists, https://steamcommunity.monster/ will serve the site.');
   console.log('===============================================================================');
 } catch (error) {
   console.error(`Bootstrap stopped: ${error.message}`);
   console.error('Check Wrangler authentication, account ID, API token scopes, and DNS zone ownership. No existing resources were deleted.');
   process.exitCode = 1;
   console.log('');
-  console.log('=== After fixing the error above, add this DNS record manually in Cloudflare: ===');
-  console.log('CNAME  @  ->  steamcommunity-monster.pages.dev   (proxied)');
+  console.log('=== To enable DNS automation, rotate token to include: ===');
+  console.log('Account > Pages > Edit');
+  console.log('Zone > Zone > Read');
+  console.log('Zone > DNS > Edit');
+  console.log('Update GitHub secret CLOUDFLARE_API_TOKEN, then re-deploy.');
+  console.log('Manual: CNAME @ -> steamcommunity-monster.pages.dev (proxied)');
   console.log('============================================================================');
 }

@@ -41,7 +41,17 @@ The test suite mocks upstream APIs and does not need provider credentials.
 
 For a one-time setup, export `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, then run `npm run bootstrap:cloudflare`. It is idempotent, creates/binds D1 when permitted, creates the Pages project, applies migrations, deploys both surfaces, and attempts the Pages custom domain. Missing DNS ownership or token scopes are reported without deleting resources.
 
-**After the first successful deploy you must create one DNS record** (the bootstrap and CI cannot do this without Zone:DNS:Edit scope):
+**For full automation (including DNS record creation):** the `CLOUDFLARE_API_TOKEN` must have these scopes:
+
+```
+Account > Pages > Edit
+Zone > Zone > Read
+Zone > DNS > Edit   (on steamcommunity.monster)
+```
+
+Create the token in Cloudflare dashboard (API Tokens > Create Token > Custom token), set the above, then update the GitHub secret `CLOUDFLARE_API_TOKEN`. CI will then create the DNS CNAME automatically.
+
+If the token only has Pages perms, the script attaches the domain but prints the manual DNS record:
 
 ```
 Type:   CNAME
@@ -50,7 +60,7 @@ Target: steamcommunity-monster.pages.dev
 Proxy:  Proxied (orange cloud)
 ```
 
-Once added, `https://steamcommunity.monster/` will resolve to the live site (Cloudflare provisions the cert automatically).
+Once added (or auto-created), `https://steamcommunity.monster/` will resolve to the live site (Cloudflare provisions the cert automatically).
 
 GitHub Actions runs tests, static checks, and Worker dry-run validation on pull requests. Pushes to `main` apply configured D1 migrations, deploy Worker and Pages, then smoke-test `/health`. Required repository secrets: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. `npm run bootstrap:github` can set them from environment variables without printing values.
 ## Add an authorized provider
