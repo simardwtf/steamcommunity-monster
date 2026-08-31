@@ -7,7 +7,7 @@
     "dev": "npm run dev:worker",
     "dev:worker": "npm --prefix worker run dev",
     "test": "node --test tests/worker.test.js",
-    "lint": "node --check worker/src/index.js && node --check pages/app.js && node --check pages/config.js && node --check scripts/bootstrap-cloudflare.js && node --check scripts/bootstrap-github.js",
+    "lint": "node --check worker/src/index.js && node --check pages/app.js && node --check pages/config.js && node --check scripts/bootstrap-cloudflare.js && node --check scripts/bootstrap-github.js && node --check scripts/check-d1-binding.js",
     "check": "npm test && npm run lint && npm --prefix worker run deploy:dry-run",
     "deploy:worker": "npm --prefix worker run deploy",
     "deploy:pages": "npx --yes wrangler pages deploy pages --project-name steamcommunity-monster",
