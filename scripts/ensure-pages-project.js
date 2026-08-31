@@ -44,11 +44,33 @@ async function ensureDomain(accountId, token) {
   await requestJson(url, { method: 'POST', headers: authHeaders, body: JSON.stringify({ name: domain }) });
   console.log(`Attached Pages domain ${domain}.`);
 }
+async function ensureDns(accountId, token) {
+  const authHeaders = headers(token);
+  const zonesUrl = `https://api.cloudflare.com/client/v4/zones?name=${encodeURIComponent(domain)}&status=active`;
+  const zones = await requestJson(zonesUrl, { headers: authHeaders });
+  const zone = zones.result?.[0];
+  if (!zone) throw new Error(`Cloudflare zone ${domain} is not active in account ${accountId}; delegate the domain to Cloudflare before deployment.`);
+  const recordsUrl = `https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(zone.id)}/dns_records?name=${encodeURIComponent(domain)}`;
+  const records = await requestJson(recordsUrl, { headers: authHeaders });
+  const existing = records.result || [];
+  const target = `${project}.pages.dev`;
+  if (existing.length) {
+    const pagesRecord = existing.find(record => record.type === 'CNAME' && record.content === target);
+    if (pagesRecord) { console.log(`DNS record ${domain} already points to ${target}.`); return; }
+    throw new Error(`DNS record ${domain} already exists with a different target; refusing to replace unrelated DNS.`);
+  }
+  await requestJson(`https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(zone.id)}/dns_records`, {
+    method: 'POST', headers: authHeaders,
+    body: JSON.stringify({ type: 'CNAME', name: domain, content: target, ttl: 1, proxied: true })
+  });
+  console.log(`Created proxied DNS CNAME ${domain} -> ${target}.`);
+}
 async function main() {
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
   const token = process.env.CLOUDFLARE_API_TOKEN;
   if (!accountId || !token) throw new Error('CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN are required.');
   await ensureProject(accountId, token);
   await ensureDomain(accountId, token);
+  await ensureDns(accountId, token);
 }
 main().catch(error => { console.error(error.message); process.exitCode = 1; });
