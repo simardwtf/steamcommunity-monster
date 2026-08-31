@@ -382,7 +382,9 @@ async function fetchJson(url, headers = {}, timeoutMs = 7000) {
 function cors(response, request, env) {
   const origin = request.headers.get('Origin');
   const configured = env.ALLOWED_ORIGIN || 'https://steamcommunity.monster';
-  const allowed = origin && (origin === configured || /^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/.test(origin)) ? origin : configured;
+  const isPreview = origin && /^https:\/\/[a-z0-9-]+\.steamcommunity-monster\.pages\.dev$/.test(origin);
+  const isLocal = origin && /^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/.test(origin);
+  const allowed = origin && (origin === configured || isPreview || isLocal) ? origin : configured;
   response.headers.set('Access-Control-Allow-Origin', allowed);
   response.headers.set('Vary', 'Origin');
   response.headers.set('Access-Control-Allow-Methods', 'GET,OPTIONS');
