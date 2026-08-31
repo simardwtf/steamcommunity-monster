@@ -9,7 +9,7 @@ async function requestJson(url, init) {
   const response = await fetch(url, init);
   const body = await response.json().catch(() => ({}));
   if (!response.ok || body.success === false) {
-    const detail = body.errors?.map(error => error.message).join('; ') || `HTTP ${response.status}`;
+    const detail = body.errors?.map(error => [error.code, error.message].filter(Boolean).join(': ')).join('; ') || `HTTP ${response.status}`;
     throw new Error(detail);
   }
   return body;

@@ -57,3 +57,5 @@ jobs:
         run: npm run deploy:pages
       - name: Smoke test API
         run: node -e "fetch('https://api.steamcommunity.monster/health').then(async r => { if (!r.ok) throw new Error('health ' + r.status); console.log(await r.text()) })"
+      - name: Smoke test production site
+        run: node -e "const dns = require('node:dns').promises; dns.lookup('steamcommunity.monster').then(({ address }) => { console.log('production_dns=' + address); return fetch('https://steamcommunity.monster/') }).then(async r => { if (!r.ok) throw new Error('production site ' + r.status); console.log('production_site_http=' + r.status); console.log(await r.text().then(body => body.slice(0, 120))) })"
