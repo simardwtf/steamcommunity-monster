@@ -72,6 +72,11 @@ async function main() {
   if (!accountId || !token) throw new Error('CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN are required.');
   await ensureProject(accountId, token);
   await ensureDomain(accountId, token);
-  await ensureDns(token);
+  try {
+    await ensureDns(token);
+  } catch (error) {
+    console.log(`DNS automation did not complete: ${error.message}`);
+    console.log(`Required record: CNAME @ -> ${target} (proxied)`);
+  }
 }
 main().catch(error => { console.error(error.message); process.exitCode = 1; });
