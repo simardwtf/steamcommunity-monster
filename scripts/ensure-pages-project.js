@@ -1,5 +1,6 @@
 const project = 'steamcommunity-monster';
 const domain = 'steamcommunity.monster';
+const target = `${project}.pages.dev`;
 
 function endpoint(accountId, suffix = '') {
   return `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/pages/projects${suffix}`;
@@ -44,16 +45,33 @@ async function ensureDomain(accountId, token) {
   await requestJson(url, { method: 'POST', headers: authHeaders, body: JSON.stringify({ name: domain }) });
   console.log(`Attached Pages domain ${domain}.`);
 }
+async function ensureDns(token) {
+  const authHeaders = headers(token);
+  const zones = await requestJson(`https://api.cloudflare.com/client/v4/zones?name=${encodeURIComponent(domain)}&status=active`, { headers: authHeaders });
+  const zone = zones.result?.[0];
+  if (!zone) throw new Error(`No active zone ${domain} visible to CLOUDFLARE_API_TOKEN`);
+  const records = await requestJson(`https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(zone.id)}/dns_records?name=${encodeURIComponent(domain)}`, { headers: authHeaders });
+  const existing = records.result || [];
+  if (existing.length) {
+    const pagesRecord = existing.find(record => record.type === 'CNAME' && String(record.content).replace(/\.$/, '') === target);
+    if (pagesRecord) {
+      console.log(`DNS record ${domain} already points to ${target}.`);
+      return;
+    }
+    throw new Error(`DNS record ${domain} already exists with a different target; not overwriting.`);
+  }
+  await requestJson(`https://api.cloudflare.com/client/v4/zones/${encodeURIComponent(zone.id)}/dns_records`, {
+    method: 'POST', headers: authHeaders,
+    body: JSON.stringify({ type: 'CNAME', name: domain, content: target, ttl: 1, proxied: true })
+  });
+  console.log(`Created proxied DNS CNAME ${domain} -> ${target}.`);
+}
 async function main() {
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
   const token = process.env.CLOUDFLARE_API_TOKEN;
   if (!accountId || !token) throw new Error('CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN are required.');
   await ensureProject(accountId, token);
   await ensureDomain(accountId, token);
-  console.log('');
-  console.log('DNS record required (add manually in Cloudflare zone if not present):');
-  console.log('  CNAME  @  ->  steamcommunity-monster.pages.dev   (proxied)');
-  console.log('This is a one-time manual step; the token used here only manages Pages, not zone DNS.');
-  console.log('To automate, rotate CLOUDFLARE_API_TOKEN to include Zone:Read + DNS:Edit scopes.');
+  await ensureDns(token);
 }
 main().catch(error => { console.error(error.message); process.exitCode = 1; });
