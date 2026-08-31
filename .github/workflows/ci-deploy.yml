@@ -21,7 +21,7 @@ jobs:
       - run: npm install --prefix worker
       - run: npm test
       - run: npm run lint
-      - run: npm --prefix worker exec wrangler deploy --dry-run --config wrangler.jsonc
+      - run: npm --prefix worker run deploy:dry-run
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
