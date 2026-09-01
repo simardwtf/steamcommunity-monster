@@ -58,6 +58,6 @@ jobs:
       - name: Smoke test API
         run: node -e "fetch('https://api.steamcommunity.monster/health').then(async r => { if (!r.ok) throw new Error('health ' + r.status); console.log(await r.text()) })"
       - name: Report production DNS status
-        run: node -e "require('node:dns').promises.lookup('steamcommunity.monster').then(({ address }) => console.log('production_dns=' + address)).catch(error => console.log('Production DNS check failed - ' + error.message))"
+        run: node -e "require('node:dns').promises.lookup('steamcommunity.monster').then(({address})=>console.log('production_dns='+address)).catch(()=>console.log('Production DNS missing. Fix: CNAME @ -> steamcommunity-monster.pages.dev (proxied)'))"
       - name: Report production HTTPS status
         run: node -e "fetch('https://steamcommunity.monster/').then(async r => { console.log('production_site_http=' + r.status); console.log((await r.text()).slice(0, 120)) }).catch(error => console.log('Production HTTPS check failed - ' + error.message))"
